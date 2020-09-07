@@ -41,6 +41,7 @@ type View struct {
 	rx, ry         int      // Read() offsets
 	wx, wy         int      // Write() offsets
 	lines          [][]cell // All the data
+	forTest        int
 
 	// readBuffer is used for storing unread bytes
 	readBuffer []byte
