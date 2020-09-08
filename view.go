@@ -41,7 +41,6 @@ type View struct {
 	rx, ry         int      // Read() offsets
 	wx, wy         int      // Write() offsets
 	lines          [][]cell // All the data
-	forTest        int
 
 	// readBuffer is used for storing unread bytes
 	readBuffer []byte
@@ -214,6 +213,17 @@ func (v *View) setRune(x, y int, ch rune, fgColor, bgColor Attribute) error {
 	return nil
 }
 
+// BufferLinePosition returns the index current row in the view's internal
+// buffer. If out of bounds of the buffer return -1
+func (v *View) BufferLinePosition() (y int) {
+	_, y, _ = v.realPosition(0, v.cy)
+	// out of buffer
+	if y > len(v.BufferLines())-1 {
+		y = -1
+	}
+	return y
+}
+
 // SetCursor sets the cursor position of the view at the given point,
 // relative to the view. It checks if the position is valid.
 func (v *View) SetCursor(x, y int) error {
@@ -224,6 +234,20 @@ func (v *View) SetCursor(x, y int) error {
 	v.cx = x
 	v.cy = y
 	return nil
+}
+
+// SetViewLineUp sets the cursor position of the view at the one line up
+func (v *View) SetViewLineUp() {
+	if v.cy > 0 {
+		v.cy -= 1
+	}
+}
+
+// SetViewLineDown sets the cursor position of the view at the one line down
+func (v *View) SetViewLineDown() {
+	if v.cy < v.ViewLinesHeight()-1 {
+		v.cy += 1
+	}
 }
 
 // Cursor returns the cursor position of the view.
