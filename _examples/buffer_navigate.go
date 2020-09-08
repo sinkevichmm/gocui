@@ -105,7 +105,8 @@ func cursorUpV1(g *gocui.Gui, v *gocui.View) error {
 }
 
 func mouseSelectV1(g *gocui.Gui, v *gocui.View) error {
-	_, err := mouseSelect(g, v)
+	err := mouseSelect(g, v)
+
 	if err != nil {
 		return err
 	}
@@ -114,18 +115,12 @@ func mouseSelectV1(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-func mouseSelect(g *gocui.Gui, v *gocui.View) (cy int, err error) {
+func mouseSelect(g *gocui.Gui, v *gocui.View) (err error) {
 	if _, err := g.SetCurrentView(v.Name()); err != nil {
-		return cy, err
+		return err
 	}
 
-	_, cy = v.Cursor()
-
-	if cy < 0 || cy >= v.ViewLinesHeight()-1 {
-		return cy, err
-	}
-
-	return cy, err
+	return err
 }
 
 func navigateV1(g *gocui.Gui) {
