@@ -9,7 +9,7 @@ import (
 	"log"
 	"strings"
 
-	"awsm-gocui/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 type randomValue struct {
