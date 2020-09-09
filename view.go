@@ -240,13 +240,20 @@ func (v *View) SetCursor(x, y int) error {
 func (v *View) SetViewLineUp() {
 	if v.cy > 0 {
 		v.cy -= 1
+	} else if v.oy > 0 {
+		v.oy -= 1
 	}
 }
 
 // SetViewLineDown sets the cursor position of the view at the one line down
 func (v *View) SetViewLineDown() {
-	if v.cy < v.ViewLinesHeight()-1 {
-		v.cy += 1
+	_, maxY := v.Size()
+	if v.cy+v.oy < v.ViewLinesHeight()-1 {
+		if v.cy >= maxY-1 {
+			v.oy += 1
+		} else {
+			v.cy += 1
+		}
 	}
 }
 
