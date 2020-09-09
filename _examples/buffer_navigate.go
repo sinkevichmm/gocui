@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
-	"awsm-gocui/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 type randomValue struct {
@@ -21,11 +22,17 @@ type randomValue struct {
 }
 
 var rndVals = []randomValue{
-	{id: 100, val: "first", prop1: "prop first", prop2: "second property", prop3: "next very important data"},
-	{id: 4, val: "next", prop1: "test1", prop2: "test2", prop3: "test3"},
-	{id: 27, val: "another", prop1: "qqq", prop2: "www", prop3: "eee"},
-	{id: 96, val: "very long value", prop1: "very", prop2: "long", prop3: "value"},
-	{id: 11, val: "last", prop1: "the", prop2: "last", prop3: "value"},
+	{id: 0, val: "first", prop1: "prop first", prop2: "second property", prop3: "next very important data"},
+	{id: 1, val: "next", prop1: "test1", prop2: "test2", prop3: "test3"},
+	{id: 2, val: "another", prop1: "qqq", prop2: "www", prop3: "eee"},
+	{id: 3, val: "very long value", prop1: "very", prop2: "long", prop3: "value"},
+	{id: 4, val: "last", prop1: "the", prop2: "last", prop3: "value"},
+	{id: 5, val: "first", prop1: "prop first", prop2: "second property", prop3: "next very important data"},
+	{id: 6, val: "next", prop1: "test1", prop2: "test2", prop3: "test3"},
+	{id: 7, val: "another", prop1: "qqq", prop2: "www", prop3: "eee"},
+	{id: 8, val: "very long value", prop1: "very", prop2: "long", prop3: "value"},
+	{id: 9, val: "last", prop1: "the", prop2: "last", prop3: "value"},
+	{id: 10, val: "first", prop1: "prop first", prop2: "second property", prop3: "next very important data"},
 }
 
 func setCurrentViewOnTop(g *gocui.Gui, name string) (*gocui.View, error) {
@@ -42,7 +49,7 @@ func layout(g *gocui.Gui) error {
 		err error
 	)
 
-	if v1, err = g.SetView("v1", 0, 0, 20, 11, 0); err != nil {
+	if v1, err = g.SetView("v1", 0, 0, 20, 12, 0); err != nil {
 		if !gocui.IsUnknownView(err) {
 			return err
 		}
@@ -71,11 +78,10 @@ func layout(g *gocui.Gui) error {
 		fmt.Fprint(v, BuffViewV2(&rndVals[0]))
 	}
 
-	if v, err := g.SetView("v3", 21, 6, 60, 11, 0); err != nil {
+	if v, err := g.SetView("v3", 21, 6, 60, 12, 0); err != nil {
 		if !gocui.IsUnknownView(err) {
 			return err
 		}
-		v.Title = "buf line"
 		v.Wrap = true
 
 		fmt.Fprint(v, BuffViewV3(v1))
@@ -105,7 +111,8 @@ func cursorUpV1(g *gocui.Gui, v *gocui.View) error {
 }
 
 func mouseSelectV1(g *gocui.Gui, v *gocui.View) error {
-	_, err := mouseSelect(g, v)
+	err := mouseSelect(g, v)
+
 	if err != nil {
 		return err
 	}
@@ -114,18 +121,12 @@ func mouseSelectV1(g *gocui.Gui, v *gocui.View) error {
 	return err
 }
 
-func mouseSelect(g *gocui.Gui, v *gocui.View) (cy int, err error) {
+func mouseSelect(g *gocui.Gui, v *gocui.View) (err error) {
 	if _, err := g.SetCurrentView(v.Name()); err != nil {
-		return cy, err
+		return err
 	}
 
-	_, cy = v.Cursor()
-
-	if cy < 0 || cy >= v.ViewLinesHeight()-1 {
-		return cy, err
-	}
-
-	return cy, err
+	return err
 }
 
 func navigateV1(g *gocui.Gui) {
@@ -170,8 +171,27 @@ func BuffViewV3(v *gocui.View) (str string) {
 	str += fmt.Sprintf("buf line index: %d\n", v.BufferLinePosition())
 	str += fmt.Sprintf("buf lines count: %d\n", len(v.BufferLines()))
 	str += fmt.Sprintf("view lines count: %d\n", len(v.ViewBufferLines()))
+	_, y := v.Cursor()
+	str += fmt.Sprintf("cursor y: %d\n", y)
+	_, y = v.Origin()
+	str += fmt.Sprintf("origin y: %d", y)
 
 	return str
+}
+
+func serviceFunc(g *gocui.Gui) {
+	time.Sleep(50 * time.Millisecond)
+
+	g.Update(func(g *gocui.Gui) error {
+		v, err := g.View("v1")
+		if err != nil {
+			return nil
+		}
+
+		fillChildView("v3", g, BuffViewV3(v))
+
+		return nil
+	})
 }
 
 func main() {
@@ -182,9 +202,11 @@ func main() {
 	defer g.Close()
 
 	g.Highlight = true
-	g.Cursor = true
+	g.Cursor = false
 	g.Mouse = true
+	//g.SelBgColor = gocui.ColorGreen
 	g.SelFgColor = gocui.ColorGreen
+	g.SelFrameColor = gocui.ColorGreen
 
 	g.SetManagerFunc(layout)
 
@@ -203,6 +225,8 @@ func main() {
 	if err := g.SetKeybinding("v1", gocui.MouseLeft, gocui.ModNone, mouseSelectV1); err != nil {
 		log.Panicln(err)
 	}
+
+	go serviceFunc(g)
 
 	if err := g.MainLoop(); err != nil && !gocui.IsQuit(err) {
 		log.Panicln(err)
